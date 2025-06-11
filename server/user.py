@@ -1,5 +1,3 @@
-# server/user.py
-
 import bcrypt
 
 class UserManager:

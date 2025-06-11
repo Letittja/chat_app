@@ -1,12 +1,9 @@
-# server/group.py
 class GroupManager:
     def __init__(self, db):
-        # Agora o gerenciador de grupo usa a mesma conexão de banco de dados do servidor
         self.db = db
-        self.db.create_group_tables() # Garante que as tabelas de grupo existam
+        self.db.create_group_tables() 
 
     def create_group(self, group_name, creator_username):
-        """Cria um grupo e adiciona o criador como primeiro membro."""
         if self.db.group_exists(group_name):
             return False
         

@@ -1,9 +1,7 @@
-# server/server.py
 import socket
 import threading
 import json
 
-# Importe as classes renomeadas dos outros módulos
 from .database import Database
 from .user import UserManager
 from .group import GroupManager
@@ -14,12 +12,10 @@ class ChatServer:
         self.port = port
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         
-        # Dicionários para gerenciar o estado do servidor
-        self.clients = {}  # Mapeia socket -> username
-        self.users_online = {} # Mapeia username -> socket para fácil acesso
-        self.chat_context = {} # Mapeia username -> contexto de chat atual (ex: {'type': 'user', 'target': 'outro_user'})
+        self.clients = {}  
+        self.users_online = {}
+        self.chat_context = {} 
 
-        # Inicializa os gerenciadores de lógica
         self.db = Database()
         self.user_manager = UserManager(self.db)
         self.group_manager = GroupManager(self.db)
@@ -46,7 +42,6 @@ class ChatServer:
     def handle_client(self, client_socket):
         username = None
         try:
-            # --- FASE DE AUTENTICAÇÃO ---
             while True:
                 auth_data_raw = client_socket.recv(1024).decode('utf-8')
                 if not auth_data_raw:
@@ -88,7 +83,6 @@ class ChatServer:
                 else:
                     self.send_json(client_socket, {"status": "error", "message": "Comando de autenticação inválido."})
 
-            # --- FASE DE COMANDOS (PÓS-LOGIN) ---
             while True:
                 message_raw = client_socket.recv(4096).decode('utf-8')
                 if not message_raw:
@@ -159,23 +153,19 @@ class ChatServer:
                     else:
                         self.send_json(client_socket, {"status": "error", "message": "Nome do grupo não fornecido."})
 
-                ### NOVO COMANDO PARA ADICIONAR MEMBRO ###
                 elif command == 'add_member_to_group':
                     group_name = data.get('group_name')
                     user_to_add = data.get('user_to_add')
 
-                    # Validações
                     if not group_name or not user_to_add:
                         self.send_json(client_socket, {"status": "error", "message": "Nome do grupo e do usuário são obrigatórios."})
                     elif not self.db.group_exists(group_name):
                         self.send_json(client_socket, {"status": "error", "message": f"O grupo '{group_name}' não existe."})
                     elif not self.db.user_exists(user_to_add):
                         self.send_json(client_socket, {"status": "error", "message": f"O usuário '{user_to_add}' não existe."})
-                    # Validação de permissão: Apenas membros existentes podem adicionar novos membros.
                     elif username not in self.group_manager.get_members(group_name):
                         self.send_json(client_socket, {"status": "error", "message": "Você não é membro deste grupo e não pode adicionar novos usuários."})
                     else:
-                        # Adiciona o membro ao banco de dados
                         self.group_manager.add_member(group_name, user_to_add)
                         self.send_json(client_socket, {"status": "success", "message": f"Usuário '{user_to_add}' adicionado ao grupo '{group_name}' com sucesso."})
                 

@@ -1,15 +1,12 @@
-# server/database.py
 import sqlite3
 
 class Database:
     def __init__(self, db_path="chat.db"):
-        # check_same_thread=False é necessário para o uso com múltiplos threads
         self.conn = sqlite3.connect(db_path, check_same_thread=False)
         self.create_user_table()
         self.create_message_table()
         self.create_group_tables()
 
-    # --- Funções de Usuário ---
     def create_user_table(self):
         cursor = self.conn.cursor()
         cursor.execute("""
@@ -41,7 +38,6 @@ class Database:
         cursor.execute("SELECT username FROM users")
         return [row[0] for row in cursor.fetchall()]
 
-    # --- Funções de Mensagem (AGORA COMPLETAS) ---
     def create_message_table(self):
         """Cria a tabela para armazenar mensagens offline."""
         cursor = self.conn.cursor()
@@ -57,7 +53,6 @@ class Database:
         self.conn.commit()
     
     def save_message(self, sender, receiver, message):
-        """Salva uma mensagem no banco de dados para entrega posterior."""
         cursor = self.conn.cursor()
         cursor.execute(
             "INSERT INTO offline_messages (sender, receiver, message) VALUES (?, ?, ?)",
@@ -66,7 +61,6 @@ class Database:
         self.conn.commit()
         
     def get_and_delete_messages_for(self, receiver):
-        """Busca e apaga todas as mensagens pendentes para um usuário."""
         cursor = self.conn.cursor()
         cursor.execute("SELECT sender, message FROM offline_messages WHERE receiver=?", (receiver,))
         messages = cursor.fetchall()
@@ -76,7 +70,6 @@ class Database:
         return messages
 
 
-    # --- Funções de Grupo ---
     def create_group_tables(self):
         cursor = self.conn.cursor()
         cursor.execute("""
@@ -107,7 +100,6 @@ class Database:
 
     def add_group_member(self, group_name, username):
         cursor = self.conn.cursor()
-        # INSERT OR IGNORE previne um erro caso o usuário já seja membro do grupo
         cursor.execute("INSERT OR IGNORE INTO group_members (group_name, username) VALUES (?, ?)", (group_name, username))
         self.conn.commit()
 

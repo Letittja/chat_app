@@ -7,7 +7,6 @@ import sys
 running = True
 
 def receive_messages(sock):
-    """Lida com as mensagens recebidas do servidor."""
     global running
     while running:
         try:
@@ -47,7 +46,6 @@ def receive_messages(sock):
 
 
 def send_json(sock, data):
-    """Função auxiliar para enviar dados JSON."""
     global running
     try:
         sock.send(json.dumps(data).encode('utf-8'))
@@ -57,7 +55,6 @@ def send_json(sock, data):
 
 
 def start_chat_mode(sock):
-    """Entra no modo de conversa, onde o input do usuário é enviado como mensagem."""
     print("\nVocê está no modo de conversa. Digite '/menu' para voltar ao menu principal.")
     while running:
         msg = input()
@@ -72,7 +69,6 @@ def start_chat_mode(sock):
 
 
 def main_menu(sock):
-    """Exibe o menu principal e lida com as escolhas do usuário."""
     global running
     while running:
         print("\n--- MENU PRINCIPAL ---")
