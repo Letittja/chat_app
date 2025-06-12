@@ -7,38 +7,40 @@ from .user import UserManager
 from .group import GroupManager
 
 class ChatServer:
+    #Cria o monitor de bate-papo, pega o IP e a porta
     def __init__(self, host='0.0.0.0', port=12345):
         self.host = host
         self.port = port
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        
+        #Dicionários de quem está conectado, quem está online e com quem cada um está falando.
         self.clients = {}  
         self.users_online = {}
         self.chat_context = {} 
-
+        #Ligação com o banco de dados
         self.db = Database()
         self.user_manager = UserManager(self.db)
         self.group_manager = GroupManager(self.db)
         print("[Servidor] Gerenciadores de banco de dados, usuários e grupos inicializados.")
-
+    #Liga o servidor e fica esperando alguém se conectar
     def start(self):
         self.server_socket.bind((self.host, self.port))
         self.server_socket.listen(5)
         print(f"[Servidor] Escutando em {self.host}:{self.port}")
 
         while True:
+            #Cria uma thread para cada novo membro
             client_socket, addr = self.server_socket.accept()
             print(f"[Nova Conexão] Conexão de {addr} estabelecida.")
             thread = threading.Thread(target=self.handle_client, args=(client_socket,))
             thread.start()
-
+    #Empacota uma mensagem em JSON e envia para o cliente
     def send_json(self, sock, data):
         """Função auxiliar para codificar e enviar dados JSON."""
         try:
             sock.send(json.dumps(data).encode('utf-8'))
         except (ConnectionResetError, BrokenPipeError):
             pass 
-
+    #Faz login, recebe mensagens, guardar offline, criar grupo, etc.
     def handle_client(self, client_socket):
         username = None
         try:
@@ -185,7 +187,7 @@ class ChatServer:
                 if username in self.chat_context: del self.chat_context[username]
             if client_socket in self.clients: del self.clients[client_socket]
             client_socket.close()
-
+#Inicia o servidor
 if __name__ == "__main__":
     chat_server = ChatServer()
     chat_server.start()
